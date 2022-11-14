@@ -73,9 +73,8 @@ val f1 = (x: Double) => -Math.pow(x, 2) + 8 * x - 12
 f1(12)                             // Se invoca a la funcion aignada al valor f1
 ((x: Double) => -Math.pow(x, 2) + 8 * x - 12)(12)      // Forma de invocar una funcion en una misma sentencia, "anonima" 
 
-=> Simbolo de Mapeo, funciones sin nombre
 -------------------------------------------------------------------------------------------------------
-Código Semana 5------------------------------------
+# Código Semana 5
 
 
 def isEven(k : Int) : Int = (k % 2)match {

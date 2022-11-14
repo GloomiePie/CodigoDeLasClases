@@ -195,7 +195,7 @@ Cuenta primos
  }
  tresFactores((1 to 1000).toList)
 ------------------------------------------------------------------------------
-Semana 6
+## Semana 6
 1.	Función para calcular desviación estándar de un grupo de números
 val nros = List(727.7, 1086.5, 1361.3, 1490.5, 1956.1)
 

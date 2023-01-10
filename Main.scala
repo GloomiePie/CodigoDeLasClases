@@ -1,77 +1,60 @@
-//Semana 10
-//Programacion Activa
-//Programacion reactiva funcional
+import com.cibo.evilplot.plot._
+import com.cibo.evilplot.plot.aesthetics.DefaultTheme._
 
-//Ejemplo de scala rx
-package semana10
-import rx._
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+import com.github.tototoshi.csv._
+import java.io.File
+
+import play.api.libs.json._
 
 object Main extends App{
-  val a = Var(1)
-  val b = Var(2)
-  val c = Rx{a() + b()}
+  val reader = CSVReader.open(new File("C:\\Users\\SALA A\\Downloads/movie_dataset.csv"))
+  val data = reader.allWithHeaders()
+  reader.close()
 
-  println(c.now)
-  a() = 4
-  println(c.now)
-}
+  val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  val releaseDateList = data
+    .map(row => row("release_date"))
+    .filter(!_.equals(""))
+    .map(text => LocalDate.parse(text, dateFormatter))
 
-//Otro codigo
-object Main2 extends App{
-  val a = Var(1)
-  val b = Var(2)
+  val yearReleaseList = releaseDateList
+    .map(_.getYear).map(_.toDouble)
+  Histogram(yearReleaseList)
+    .title("Años de lanzamiento")
+    .xAxis()
+    .yAxis()
+    .xbounds(1926.0, 2018.0)
+    .render()
+    .write(new File("C:\\Users\\SALA A\\Downloads\\Representación.png"))
 
-  val c = Rx{a() + b()}
-  val d = Rx{c() * 5}
-  val e = Rx{c() + 4}
-  val f = Rx{d() + e() + 4}
+    val productionCompanies = data
+      .flatMap(row => row.get("Production_companies"))
+      .map(row => Json.parse(row))
+      .flatMap(jsonData => jsonData \\ "name")
+      .map(jsValue => jsValue.as[String])
+      .groupBy(identity)
+      .map{ case (keyword, lista) => (keyword, lista.size)}
+      .toList
+      .sortBy(_._2)
+      .reverse
 
-  println(f.now)
-  a() = 3
-  println(f.now)
-}
+    val pCompaniesValues = productionCompanies.take(10).map(_._2).map(_.toDouble)
+    val pCompaniesLables = productionCompanies.take(10).map(_._1)
 
-//Observers u Obs
-//Ejemplo
+    BarChart(pCompaniesValues)
+      .title("Compañias Productoras")
+      .xAxis(pCompaniesLables)
+      .yAxis()
+      .frame()
+      .yLabel("Productions")
+      .bottomLegend()
+      .render()
+      .write(new File("C:\\Users\\SALA A\\Downloads\\Representación2.png"))
 
-object Main3 extends App{
-  val a = Var(1)
-  var count = 0
-  val o = a.trigger { //El trigger esta pendiente de 'a' desde que se la declaracion
-    count = a.now + 1
-  }
-  println(count)
-  a() = 4
-  println(count)
-}
-
-//Otro ejemplo
-object Main4 extends App{
-  val a = Var(1)
-  var count = 0
-  val o = a.triggerLater { //El triggerLater esta pendiente de 'a' despues de su declaracion
-    count = a.now + 1
-  }
-  println(count)
-  a() = 4
-  println(count)
-}
-
-//Es posible apagar un Obs, usando el metodo kill
-//Ejemplo
-
-object Main5 extends App{
-  val a = Var(1)
-  val b = Rx{2 + a()}
-  var target = 0
-  val o = b.trigger{
-    target = b.now
-  }
-
-  println(target)
-  a() = 2
-  println(target)
-  o.kill() //El .kill() hace que el trigger deje de estar pendiente de los cambios de b
-  a() = 3
-  println(target)
+    implicit val theme = DefaultTheme.copy(
+      elements = DefaultElements.copy(categoricalXAxisLabelOrientation = 45)
+    )
 }
